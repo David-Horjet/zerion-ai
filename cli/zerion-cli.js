@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 
-import { parseFlags, basicAuthHeader, validateChain, validatePositions, resolvePositionFilter, summarizeAnalyze, CHAIN_IDS, POSITION_FILTERS } from "./lib.mjs";
+import { parseFlags, basicAuthHeader, validateChain, validatePositions, resolvePositionFilter, summarizeAnalyze } from "./lib.mjs";
 
 const API_BASE_DEFAULT = "https://api.zerion.io/v1";
-const API_BASE_X402 = "https://api.zerion.io/v1/x402";
 const DEFAULT_TX_LIMIT = 10;
 const API_KEY = process.env.ZERION_API_KEY || "";
 const USE_X402 = process.env.ZERION_X402 === "true";
 const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY || "";
+
+let debug = false;
+function debugLog(...args) {
+  if (debug) process.stderr.write(`[debug] ${args.join(" ")}\n`);
+}
 
 let _x402Fetch = null;
 async function getX402Fetch() {
@@ -77,9 +81,7 @@ function validatePositionsOrExit(positions) {
 }
 
 async function fetchAPI(pathname, params = {}, useX402 = false) {
-  const apiBase = useX402
-    ? (process.env.ZERION_API_BASE_X402 || API_BASE_X402)
-    : (process.env.ZERION_API_BASE || API_BASE_DEFAULT);
+  const apiBase = process.env.ZERION_API_BASE || API_BASE_DEFAULT;
 
   const url = new URL(`${apiBase}${pathname}`);
   for (const [key, value] of Object.entries(params)) {
@@ -93,8 +95,12 @@ async function fetchAPI(pathname, params = {}, useX402 = false) {
     headers.Authorization = basicAuthHeader(API_KEY);
   }
 
+  debugLog(`${useX402 ? "x402" : "api"} GET ${url}`);
+
   const fetchFn = useX402 ? await getX402Fetch() : fetch;
   const response = await fetchFn(url, { headers });
+
+  debugLog(`response ${response.status} ${url}`);
 
   const text = await response.text();
   let payload;
@@ -105,6 +111,7 @@ async function fetchAPI(pathname, params = {}, useX402 = false) {
   }
 
   if (!response.ok) {
+    debugLog(`error body: ${text.slice(0, 500)}`);
     const err = new Error(`Zerion API request failed with status ${response.status}.`);
     err.status = response.status;
     err.response = payload;
@@ -165,6 +172,7 @@ async function main() {
 
   // x402 mode: pay-per-call, no API key needed
   const useX402 = flags.x402 === true || USE_X402;
+  debug = flags.debug === true;
 
   if (scope === "chains" && action === "list") {
     print(await listChains(useX402));
@@ -213,7 +221,13 @@ async function main() {
       const labels = ["portfolio", "positions", "transactions", "pnl"];
       const values = results.map((r) => r.status === "fulfilled" ? r.value : null);
       const failures = results
-        .map((r, i) => r.status === "rejected" ? labels[i] : null)
+        .map((r, i) => {
+          if (r.status === "rejected") {
+            debugLog(`${labels[i]} failed: ${r.reason?.message}\n${r.reason?.stack}`);
+            return labels[i];
+          }
+          return null;
+        })
         .filter(Boolean);
       const summary = summarizeAnalyze(target, ...values);
       if (failures.length) summary.failures = failures;

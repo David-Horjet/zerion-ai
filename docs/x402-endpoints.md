@@ -15,7 +15,7 @@ The CLI uses [`@x402/fetch`](https://www.npmjs.com/package/@x402/fetch) and [`@x
 ## Base URL
 
 ```
-https://api.zerion.io/v1/x402
+https://api.zerion.io/v1
 ```
 
 ## Available Endpoints
@@ -70,7 +70,7 @@ zerion-cli wallet portfolio 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --x402
 ### curl
 
 ```bash
-curl https://api.zerion.io/v1/x402/wallets/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045/portfolio
+curl https://api.zerion.io/v1/wallets/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045/portfolio
 ```
 
 ### Environment Variable
