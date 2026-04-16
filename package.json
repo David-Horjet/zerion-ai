@@ -1,15 +1,15 @@
 {
-  "name": "zerion-cli",
+  "name": "zerion",
   "version": "0.3.0",
   "description": "Zerion for AI agents and developers: hosted MCP docs, wallet-analysis skill, and a JSON-first CLI.",
   "author": "Zerion",
   "type": "module",
   "bin": {
-    "zerion-cli": "./cli/zerion-cli.js"
+    "zerion": "./cli/zerion.js"
   },
   "files": [
-    "cli/*.js",
-    "cli/*.mjs",
+    "cli/**/*.js",
+    "cli/**/*.mjs",
     "README.md",
     "LICENSE"
   ],
@@ -40,9 +40,12 @@
   "homepage": "https://github.com/zeriontech/zerion-ai#readme",
   "license": "MIT",
   "dependencies": {
+    "@open-wallet-standard/core": "^1.2.4",
+    "@solana/web3.js": "^1.98.4",
     "@x402/evm": "^2.6.0",
     "@x402/fetch": "^2.6.0",
     "@x402/svm": "^2.8.0",
+    "qrcode-terminal": "^0.12.0",
     "viem": "^2.0.0"
   }
 }

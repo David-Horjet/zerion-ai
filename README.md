@@ -7,11 +7,12 @@
 It packages two first-class integration paths:
 
 - **Hosted MCP** for Cursor, Claude, and other MCP-native agent environments
-- **`zerion-cli`** for OpenClaw-like and command-based agent runtimes
+- **`zerion`** for OpenClaw-like and command-based agent runtimes
 
-It also ships one flagship workflow:
+It ships two flagship workflows:
 
-- **`wallet-analysis`** as a reusable skill/playbook for portfolio, positions, transactions, and PnL analysis
+- **`wallet-analysis`** — portfolio, positions, transactions, and PnL analysis (agent operation)
+- **`wallet-trading`** — swap, bridge, buy/sell tokens (agent operation); wallet setup, agent tokens, and policies (manual, requires passphrase)
 
 ![Wallet analysis demo](./assets/demo-wallet-analysis.svg)
 
@@ -56,14 +57,14 @@ export ZERION_X402_PREFER_SOLANA=true  # optional: prefer Solana when both are s
 Then use the `--x402` flag:
 
 ```bash
-zerion-cli wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --x402
+zerion wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --x402
 ```
 
 Or enable x402 globally:
 
 ```bash
 export ZERION_X402=true
-zerion-cli wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+zerion wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
 ```
 
 ## 2. Install skills (Claude Code, Cursor, OpenClaw)
@@ -72,15 +73,16 @@ zerion-cli wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
 npx skills add zeriontech/zerion-ai
 ```
 
-This installs 3 skills into your agent:
+This installs 4 skills into your agent:
 
 | Skill | Description |
 |-------|-------------|
 | **wallet-analysis** | Analyze wallets: portfolio, positions, transactions, PnL |
+| **wallet-trading** | Swap, bridge, buy/sell tokens, wallets, agent tokens, policies |
 | **chains** | List supported blockchain networks |
-| **zerion-cli** | CLI setup, authentication, and troubleshooting |
+| **zerion** | CLI setup, authentication, and troubleshooting |
 
-The skills reference `zerion-cli` which runs via `npx zerion-cli` (no global install needed).
+The skills reference `zerion` which runs via `npx zerion` (no global install needed).
 
 ## 3. Choose your integration path
 
@@ -99,8 +101,8 @@ Start here:
 Use this if your framework models tools as shell commands returning JSON.
 
 ```bash
-npm install -g zerion-cli
-zerion-cli wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+npm install -g zerion
+zerion wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
 ```
 
 Start here:
@@ -131,17 +133,17 @@ Start here:
 **With API key:**
 
 ```bash
-npm install -g zerion-cli
+npm install -g zerion
 export ZERION_API_KEY="zk_dev_..."
-zerion-cli wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+zerion wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
 ```
 
 **With x402 (no API key needed):**
 
 ```bash
-npm install -g zerion-cli
+npm install -g zerion
 export WALLET_PRIVATE_KEY="0x..."   # or base58 for Solana
-zerion-cli wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --x402
+zerion wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --x402
 ```
 
 Example output:
@@ -177,12 +179,13 @@ This repo uses the same public wallets across examples:
 
 ## What ships in this repo
 
-- [`skills/`](./skills/): 3 agent skills installable via `npx skills add zeriontech/zerion-ai`
+- [`skills/`](./skills/): 4 agent skills installable via `npx skills add zeriontech/zerion-ai`
   - [`wallet-analysis/`](./skills/wallet-analysis/SKILL.md): portfolio, positions, transactions, and PnL analysis
+  - [`wallet-trading/`](./skills/wallet-trading/SKILL.md): swap, bridge, buy/sell, wallets, agent tokens, policies
   - [`chains/`](./skills/chains/SKILL.md): supported blockchain networks reference
-  - [`zerion-cli/`](./skills/zerion-cli/SKILL.md): CLI setup, auth, and troubleshooting
+  - [`zerion/`](./skills/zerion/SKILL.md): CLI setup, auth, and troubleshooting
 - [`mcp/`](./mcp/README.md): hosted Zerion MCP setup plus the tool catalog
-- [`cli/`](./cli/README.md): `zerion-cli` JSON-first CLI (published to npm)
+- [`cli/`](./cli/): `zerion` unified CLI — wallet analysis + trading (published to npm)
 - [`examples/`](./examples/): Cursor, Claude, OpenAI Agents SDK, raw HTTP, and OpenClaw setups
 
 ## Failure modes to expect
