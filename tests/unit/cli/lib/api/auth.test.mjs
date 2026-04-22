@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { resolveAuth } from "../cli/lib/api/auth.js";
+import { resolveAuth, basicAuthHeader } from "#zerion-ai/cli/lib/api/auth.js";
 
 // Synthetic keys that pass the format detectors but are never used for
 // actual crypto operations — resolveAuth is pure and doesn't touch the network.
@@ -150,5 +150,26 @@ describe("resolveAuth — apiKey fallback", () => {
       assert.equal(a.kind, "apiKey");
       assert.equal(a.key, "zk_dev_test_fake");
     });
+  });
+});
+
+describe("basicAuthHeader", () => {
+  it("produces correct Base64 for a normal key", () => {
+    const header = basicAuthHeader("zk_dev_abc");
+    const decoded = Buffer.from(header.replace("Basic ", ""), "base64").toString();
+    assert.equal(decoded, "zk_dev_abc:");
+  });
+
+  it("produces correct header for empty string", () => {
+    const header = basicAuthHeader("");
+    assert.equal(header, "Basic Og==");
+    const decoded = Buffer.from("Og==", "base64").toString();
+    assert.equal(decoded, ":");
+  });
+
+  it("handles special characters in key", () => {
+    const header = basicAuthHeader("key+with/special=chars");
+    const decoded = Buffer.from(header.replace("Basic ", ""), "base64").toString();
+    assert.equal(decoded, "key+with/special=chars:");
   });
 });
