@@ -67,6 +67,33 @@ export ZERION_X402=true
 zerion wallet analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
 ```
 
+### Option C: MPP Pay-per-call
+
+**No API key needed.** Pay $0.01 USDC per request via the [MPP protocol](https://mpp.dev) on [Tempo](https://tempo.xyz). The CLI handles the payment handshake automatically.
+
+```bash
+export WALLET_PRIVATE_KEY="0x..."   # EVM private key with USDC on Tempo
+```
+
+Or use a dedicated key:
+
+```bash
+export TEMPO_PRIVATE_KEY="0x..."
+```
+
+Then use the `--mpp` flag:
+
+```bash
+zerion portfolio 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --mpp
+```
+
+Or enable MPP globally:
+
+```bash
+export ZERION_MPP=true
+zerion portfolio 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+```
+
 ## 2. Install skills (Claude Code, Cursor, OpenClaw)
 
 ```bash
