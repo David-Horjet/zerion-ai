@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { parseFlags } from "../cli/lib/util/flags.js";
-import { basicAuthHeader } from "../cli/lib/api/client.js";
+import { basicAuthHeader } from "../cli/lib/api/auth.js";
 import { validateChain, validatePositions, resolvePositionFilter, CHAIN_IDS, POSITION_FILTERS } from "../cli/lib/util/validate.js";
 import { summarizeAnalyze } from "../cli/lib/util/analyze.js";
 

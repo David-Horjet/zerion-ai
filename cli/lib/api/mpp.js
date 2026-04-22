@@ -1,5 +1,5 @@
 // MPP pay-per-call support — lazy-loaded.
-// Only imports mppx when actually needed.
+// Key is resolved by ./auth.js; this module only consumes it.
 
 let _mppFetch = null;
 
@@ -22,24 +22,11 @@ function normalizeMppError(err, address) {
   return e;
 }
 
-export async function getMppFetch() {
+export async function getMppFetch(auth) {
   if (_mppFetch) return _mppFetch;
-  // TEMPO_PRIVATE_KEY takes precedence; fall back to the shared WALLET_PRIVATE_KEY
-  const privateKey = process.env.TEMPO_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
-  if (!privateKey) {
-    throw new Error(
-      "MPP mode requires a private key. Set TEMPO_PRIVATE_KEY or WALLET_PRIVATE_KEY."
-    );
-  }
-  if (!privateKey.startsWith("0x")) {
-    throw new Error(
-      "MPP requires an EVM private key (0x-prefixed).\n" +
-      "WALLET_PRIVATE_KEY appears to be a Solana key — set TEMPO_PRIVATE_KEY=0x... for MPP."
-    );
-  }
   const { Mppx, tempo } = await import("mppx/client");
   const { privateKeyToAccount } = await import("viem/accounts");
-  const account = privateKeyToAccount(privateKey);
+  const account = privateKeyToAccount(auth.key);
   const mppx = Mppx.create({ methods: [tempo({ account })] });
   const inner = mppx.fetch.bind(mppx);
 
@@ -54,8 +41,4 @@ export async function getMppFetch() {
   };
 
   return _mppFetch;
-}
-
-export function isMppEnabled() {
-  return process.env.ZERION_MPP === "true";
 }

@@ -1,23 +1,9 @@
 // x402 pay-per-call support — lazy-loaded.
 // Supports EVM (Base) via @x402/evm and Solana via @x402/svm.
-// Key resolution (highest priority first):
-//   EVM:    EVM_PRIVATE_KEY  →  WALLET_PRIVATE_KEY (if 0x-prefixed)
-//   Solana: SOLANA_PRIVATE_KEY  →  WALLET_PRIVATE_KEY (if base58, 87-88 chars)
+// Keys + preferences are resolved by ./auth.js; this module only consumes
+// them and builds the fetch wrapper.
 
 let _x402Fetch = null;
-
-// Solana keypairs are 64 bytes; base58-encoded they are 87-88 characters.
-const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]+$/;
-function isEvmKey(k)    { return k.startsWith("0x"); }
-function isSolanaKey(k) { return !k.startsWith("0x") && BASE58_RE.test(k) && k.length >= 87; }
-
-function resolveKeys() {
-  const wallet = process.env.WALLET_PRIVATE_KEY || "";
-  return {
-    evm:    process.env.EVM_PRIVATE_KEY    || (isEvmKey(wallet)    ? wallet : ""),
-    solana: process.env.SOLANA_PRIVATE_KEY || (isSolanaKey(wallet) ? wallet : ""),
-  };
-}
 
 function normalizeX402Error(err) {
   const msg = err.message || "";
@@ -35,18 +21,10 @@ function normalizeX402Error(err) {
   return e;
 }
 
-export async function getX402Fetch() {
+export async function getX402Fetch(auth) {
   if (_x402Fetch) return _x402Fetch;
 
-  const { evm, solana } = resolveKeys();
-  if (!evm && !solana) {
-    throw new Error(
-      "x402 mode requires a private key.\n" +
-      "  EVM (Base):  set WALLET_PRIVATE_KEY=0x...  or  EVM_PRIVATE_KEY=0x...\n" +
-      "  Solana:      set WALLET_PRIVATE_KEY=<base58>  or  SOLANA_PRIVATE_KEY=<base58>"
-    );
-  }
-
+  const { evm, solana } = auth.keys;
   const { wrapFetchWithPayment, x402Client } = await import("@x402/fetch");
   const client = new x402Client();
 
@@ -66,7 +44,7 @@ export async function getX402Fetch() {
 
   // When both chains are available, optionally prefer Solana by reordering
   // payment requirements so Solana options are evaluated first.
-  if (evm && solana && process.env.ZERION_X402_PREFER_SOLANA === "true") {
+  if (evm && solana && auth.preferSolana) {
     client.registerPolicy((_version, reqs) => [
       ...reqs.filter((r) => r.network.startsWith("solana:")),
       ...reqs.filter((r) => !r.network.startsWith("solana:")),
@@ -87,8 +65,4 @@ export async function getX402Fetch() {
   };
 
   return _x402Fetch;
-}
-
-export function isX402Enabled() {
-  return process.env.ZERION_X402 === "true";
 }
