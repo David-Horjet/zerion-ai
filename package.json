@@ -5,11 +5,14 @@
   "author": "Zerion",
   "type": "module",
   "bin": {
-    "zerion": "./cli/zerion.js"
+    "zerion": "./zerion.js"
   },
   "files": [
-    "cli/**/*.js",
-    "cli/**/*.mjs",
+    "zerion.js",
+    "router.js",
+    "commands/",
+    "utils/",
+    "policies/",
     "README.md",
     "LICENSE"
   ],
