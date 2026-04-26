@@ -38,11 +38,22 @@ export default async function walletSignMessage(args, flags) {
     process.exit(1);
   }
 
+  // Validate the wallet exists BEFORE prompting for agent-token setup, so a
+  // typo'd --wallet doesn't drag the user through token creation just to fail.
+  let wallet;
+  try {
+    wallet = ows.getWallet(walletName);
+  } catch (err) {
+    printError("wallet_not_found", `Wallet "${walletName}" not found`, {
+      suggestion: "List wallets: zerion wallet list",
+    });
+    process.exit(1);
+  }
+
   // Agent token required — same model as swap/bridge/send. No interactive passphrase.
-  const passphrase = await requireAgentToken("for signing");
+  const passphrase = await requireAgentToken("for signing", walletName);
 
   try {
-    const wallet = ows.getWallet(walletName);
     const caip2 = toCaip2(chain);
     const result = ows.signMessage(walletName, message, passphrase, encoding, caip2);
 

@@ -20,9 +20,13 @@ const POLICIES_DIR = resolve(join(__dirname, "..", "..", "policies"));
  * inline — runs `agent create-token` then returns the freshly-saved token so
  * the caller can continue. In non-TTY contexts, errors and exits.
  * @param {string} [context] - what the token is needed for, e.g. "for signing"
+ * @param {string} [targetWallet] - wallet the caller intends to use; binds the
+ *   inline-created token to this wallet instead of the default. Required when
+ *   the caller resolved a wallet via --wallet so the token isn't bound to the
+ *   wrong account.
  * @returns {Promise<string>} The agent token (used as OWS passphrase)
  */
-export async function requireAgentToken(context = "") {
+export async function requireAgentToken(context = "", targetWallet) {
   const token = getAgentToken();
   if (token) return token;
 
@@ -41,7 +45,6 @@ export async function requireAgentToken(context = "") {
   // Interactive: offer to create one now
   process.stderr.write(`\nAgent token required${suffix}.\n`);
 
-  const defaultWallet = getConfigValue("defaultWallet");
   const wallets = (() => {
     try { return listWallets(); } catch { return []; }
   })();
@@ -51,7 +54,9 @@ export async function requireAgentToken(context = "") {
     process.exit(1);
   }
 
-  const walletName = defaultWallet || wallets[0].name;
+  // Prefer the wallet the caller resolved (--wallet or default) over a global fallback
+  const defaultWallet = getConfigValue("defaultWallet");
+  const walletName = targetWallet || defaultWallet || wallets[0].name;
   const wantSetup = await confirm(`Want to setup an agent token for "${walletName}"? [Y/n] `);
   if (!wantSetup) {
     process.stderr.write("Aborted. Create one later with: zerion agent create-token --name <name> --wallet <wallet>\n\n");
